@@ -1,24 +1,110 @@
+# This file is part of the MicroPython project, http://micropython.org/
+#
+# The MIT License (MIT)
+#
+# Copyright 2020 NXP
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 cmake_minimum_required(VERSION 3.13.1)
 
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
-project(NONE)
+project(micropython)
 
-target_sources(app PRIVATE src/zephyr_start.c src/zephyr_getchar.c)
+set(MPY_PORT_DIR        ${CMAKE_CURRENT_SOURCE_DIR})
+set(MPY_DIR             ${MPY_PORT_DIR}/../..)
+set(MICROPYTHON_TARGET  micropython)
 
-add_library(libmicropython STATIC IMPORTED)
-set_target_properties(libmicropython PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/libmicropython.a)
-target_link_libraries(app PUBLIC libmicropython)
+include(${MPY_DIR}/py/py.cmake)
+include(${MPY_DIR}/extmod/extmod.cmake)
 
-zephyr_get_include_directories_for_lang_as_string(C includes)
-zephyr_get_system_include_directories_for_lang_as_string(C system_includes)
-zephyr_get_compile_definitions_for_lang_as_string(C definitions)
-zephyr_get_compile_options_for_lang_as_string(C options)
-
-add_custom_target(
-  outputexports
-  COMMAND echo CC="${CMAKE_C_COMPILER}"
-  COMMAND echo AR="${CMAKE_AR}"
-  COMMAND echo Z_CFLAGS=${system_includes} ${includes} ${definitions} ${options}
-  VERBATIM
-  USES_TERMINAL
+set(SOURCE_PORT
+    main.c
+    help.c
+    machine_i2c.c
+    machine_pin.c
+    modmachine.c
+    moduos.c
+    modusocket.c
+    modutime.c
+    modzephyr.c
+    modzsensor.c
+    uart_core.c
+    zephyr_storage.c
 )
+list(TRANSFORM SOURCE_PORT PREPEND ${MPY_PORT_DIR}/)
+
+set(SOURCE_LIB
+    timeutils/timeutils.c
+    utils/mpirq.c
+    utils/stdout_helpers.c
+    utils/printf.c
+    utils/pyexec.c
+    utils/interrupt_char.c
+    mp-readline/readline.c
+    oofatfs/ff.c
+    oofatfs/ffunicode.c
+    littlefs/lfs1.c
+    littlefs/lfs1_util.c
+    littlefs/lfs2.c
+    littlefs/lfs2_util.c
+)
+list(TRANSFORM SOURCE_LIB PREPEND ${MPY_DIR}/lib/)
+
+set(SOURCE_QSTR
+    ${SOURCE_PY}
+    ${SOURCE_EXTMOD}
+    ${SOURCE_LIB}
+    ${SOURCE_PORT}
+)
+
+zephyr_library_named(${MICROPYTHON_TARGET})
+
+zephyr_library_include_directories(
+    ${MPY_DIR}
+    ${MPY_PORT_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+zephyr_library_compile_options(
+    -std=gnu99 -fomit-frame-pointer
+)
+
+zephyr_library_compile_definitions(
+    NDEBUG
+    MP_CONFIGFILE=<${CONFIG_MICROPY_CONFIGFILE}>
+    MICROPY_HEAP_SIZE=${CONFIG_MICROPY_HEAP_SIZE}
+    FFCONF_H=\"${OOFATFS_DIR}/ffconf.h\"
+    MICROPY_VFS_FAT=$<BOOL:${CONFIG_MICROPY_VFS_FAT}>
+    MICROPY_VFS_LFS1=$<BOOL:${CONFIG_MICROPY_VFS_LFS1}>
+    MICROPY_VFS_LFS2=$<BOOL:${CONFIG_MICROPY_VFS_LFS2}>
+)
+
+zephyr_library_sources(${SOURCE_QSTR})
+
+add_dependencies(${MICROPYTHON_TARGET} zephyr_generated_headers)
+
+include(${MPY_DIR}/py/mkrules.cmake)
+
+target_sources(app PRIVATE
+    src/zephyr_start.c
+    src/zephyr_getchar.c
+)
+
+target_link_libraries(app PRIVATE ${MICROPYTHON_TARGET})
