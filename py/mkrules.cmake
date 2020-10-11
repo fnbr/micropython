@@ -14,7 +14,7 @@ set(MPY_FROZEN_CONTENT "${CMAKE_BINARY_DIR}/frozen_content.c")
 target_sources(${MICROPYTHON_TARGET} PRIVATE
     ${MPY_MPVERSION}
     ${MPY_QSTR_DEFS_GENERATED}
-    ${MPY_FROZEN_CONTENT}
+    #${MPY_FROZEN_CONTENT}
 )
 
 # Command to force the build of another command
@@ -88,10 +88,10 @@ add_custom_command(
 
 # Build frozen code
 
-target_compile_options(${MICROPYTHON_TARGET} PUBLIC
-    -DMICROPY_QSTR_EXTRA_POOL=mp_qstr_frozen_const_pool
-    -DMICROPY_MODULE_FROZEN_MPY=\(1\)
-)
+#target_compile_options(${MICROPYTHON_TARGET} PUBLIC
+    #-DMICROPY_QSTR_EXTRA_POOL=mp_qstr_frozen_const_pool
+    #-DMICROPY_MODULE_FROZEN_MPY=\(1\)
+#)
 
 add_custom_command(
     OUTPUT ${MPY_FROZEN_CONTENT}
