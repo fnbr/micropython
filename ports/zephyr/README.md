@@ -56,11 +56,11 @@ not have to be in the `ports/zephyr` directory. Assuming you have cloned the
 MicroPython repository into your home directory, you can build the Zephyr port
 for a frdm_k64f board like this:
 
-    $ west build -b frdm_k64f ~/micropython/ports/zephyr
+    $ west build -b frdm_k64f ~/micropython/ports/zephyr -- -G'Unix Makefiles'
 
 To build for QEMU instead:
 
-    $ west build -b qemu_x86 ~/micropython/ports/zephyr
+    $ west build -b qemu_x86 ~/micropython/ports/zephyr -- -G'Unix Makefiles'
 
 Consult the Zephyr documentation above for the list of
 supported boards.  Board configuration files appearing in `ports/zephyr/boards/`
@@ -152,7 +152,7 @@ enabled over time.
 
 To make a minimal build:
 
-    $ west build -b qemu_x86 ~/micropython/ports/zephyr -- -DCONF_FILE=prj_minimal.conf
+    $ west build -b qemu_x86 ~/micropython/ports/zephyr -- -G'Unix Makefiles' -DCONF_FILE=prj_minimal.conf
 
 To run a minimal build in QEMU without requiring TAP networking setup
 run the following after you built an image with the previous command:

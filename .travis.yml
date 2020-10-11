@@ -59,12 +59,12 @@ jobs:
         - docker exec -w /zephyrproject zephyr-ci west update
         - docker exec -w /zephyrproject zephyr-ci west zephyr-export
       script:
-        - docker exec zephyr-ci west build -b qemu_x86 -- -DCONF_FILE=prj_minimal.conf
-        - docker exec zephyr-ci west build -b frdm_k64f -- -DCONF_FILE=prj_minimal.conf
-        - docker exec zephyr-ci west build -b qemu_x86
-        - docker exec zephyr-ci west build -b frdm_k64f
-        - docker exec zephyr-ci west build -b mimxrt1050_evk
-        - docker exec zephyr-ci west build -b reel_board
+        - docker exec zephyr-ci west build -b qemu_x86 -- -G'Unix Makefiles' -DCONF_FILE=prj_minimal.conf
+        - docker exec zephyr-ci west build -b frdm_k64f -- -G'Unix Makefiles' -DCONF_FILE=prj_minimal.conf
+        - docker exec zephyr-ci west build -b qemu_x86 -- -G'Unix Makefiles'
+        - docker exec zephyr-ci west build -b frdm_k64f -- -G'Unix Makefiles'
+        - docker exec zephyr-ci west build -b mimxrt1050_evk -- -G'Unix Makefiles'
+        - docker exec zephyr-ci west build -b reel_board -- -G'Unix Makefiles'
 
     # unix port on OSX (first in list because the build VM takes a long time to start)
     - stage: test
