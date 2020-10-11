@@ -51,7 +51,7 @@ add_custom_command(
 # last run, but it looks like it's not possible to specify that with cmake.
 add_custom_command(
     OUTPUT ${MPY_QSTR_DEFS_LAST}
-    COMMAND ${CMAKE_C_COMPILER} -E \$\(C_INCLUDES\) \$\(C_FLAGS\) -DNO_QSTR ${SOURCE_QSTR} > ${MPY_GENHDR_DIR}/qstr.i.last
+    COMMAND ${CMAKE_C_COMPILER} -E \$\(C_INCLUDES\) \$\(C_FLAGS\) \$\(C_DEFINES\) -DNO_QSTR ${SOURCE_QSTR} > ${MPY_GENHDR_DIR}/qstr.i.last
     DEPENDS ${MPY_MODULEDEFS}
         ${SOURCE_QSTR}
     VERBATIM
@@ -74,7 +74,7 @@ add_custom_command(
 
 add_custom_command(
     OUTPUT ${MPY_QSTR_DEFS_PREPROCESSED}
-    COMMAND cat ${MPY_PY_QSTRDEFS} ${MPY_QSTR_DEFS_COLLECTED} | sed "s/^Q(.*)/\"&\"/" | ${CMAKE_C_COMPILER} -E \$\(C_INCLUDES\) \$\(C_FLAGS\) - | sed "s/^\\\"\\(Q(.*)\\)\\\"/\\1/" > ${MPY_QSTR_DEFS_PREPROCESSED}
+    COMMAND cat ${MPY_PY_QSTRDEFS} ${MPY_QSTR_DEFS_COLLECTED} | sed "s/^Q(.*)/\"&\"/" | ${CMAKE_C_COMPILER} -E \$\(C_INCLUDES\) \$\(C_FLAGS\) \$\(C_DEFINES\) - | sed "s/^\\\"\\(Q(.*)\\)\\\"/\\1/" > ${MPY_QSTR_DEFS_PREPROCESSED}
     DEPENDS ${MPY_QSTR_DEFS_COLLECTED}
     VERBATIM
 )
